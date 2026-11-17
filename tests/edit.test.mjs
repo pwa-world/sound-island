@@ -1,0 +1,4 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {validateRange,filters,exportArgs} from '../src/edit.js';
+test('reject invalid or empty ranges',()=>{for(const r of [[0,0,10],[-1,2,10],[2,1,10],[0,11,10],[NaN,2,10]])assert.equal(validateRange(...r),false);assert.equal(validateRange(1,2,10),true)});
+test('clamp fades to half a short clip; reverse before fades',()=>{assert.equal(filters({gain:.5,fade:2,reverse:true},1),'volume=0.5,areverse,afade=t=in:st=0:d=0.5,afade=t=out:st=0.5:d=0.5')});
+test('export only selected time with expected codecs',()=>{const args=exportArgs({start:1,end:3,gain:1,fade:0,reverse:false,format:'mp3'});assert.equal(args[args.indexOf('-t')+1],'2');assert.ok(args.includes('libmp3lame'));assert.ok(exportArgs({start:0,end:1,format:'wav'}).includes('pcm_s16le'))});
