@@ -186,17 +186,22 @@ h2 {
 .drop {
   border: 1.5px dashed #b6c5a7;
   border-radius: 14px;
-  text-align: center;
-  padding: 30px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
   background: #fafbf7;
 }
 .drop.drag {
   background: #e5eddb;
 }
-.upload-symbol {
-  font-size: 30px;
-  color: #71875f;
-  margin-bottom: 12px;
+.file-info {
+  min-width: 0;
+}
+.drop button {
+  flex-shrink: 0;
+  padding: 10px 14px;
 }
 .small {
   font-size: 12px;
@@ -204,7 +209,9 @@ h2 {
 }
 .file-name {
   font-weight: 650;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .wave-wrap {
   position: relative;
