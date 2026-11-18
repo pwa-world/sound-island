@@ -18,6 +18,23 @@ export function filters({ gain = 1, fade = 0, reverse = false }, duration) {
     );
   return f.join(",");
 }
+export const exportFormats = {
+  m4a: {
+    label: "M4A · AAC · 192 kbps",
+    mime: "audio/mp4",
+    args: ["-c:a", "aac", "-b:a", "192k"],
+  },
+  mp3: {
+    label: "MP3 · 192 kbps",
+    mime: "audio/mpeg",
+    args: ["-c:a", "libmp3lame", "-b:a", "192k"],
+  },
+  wav: {
+    label: "WAV · PCM · 无损编辑",
+    mime: "audio/wav",
+    args: ["-c:a", "pcm_s16le"],
+  },
+};
 export function exportArgs({ start, end, gain, fade, reverse, format }) {
   return [
     "-ss",
@@ -29,9 +46,7 @@ export function exportArgs({ start, end, gain, fade, reverse, format }) {
     "-vn",
     "-af",
     filters({ gain, fade, reverse }, end - start),
-    ...(format === "mp3"
-      ? ["-c:a", "libmp3lame", "-b:a", "192k"]
-      : ["-c:a", "pcm_s16le"]),
+    ...exportFormats[format].args,
     `export.${format}`,
   ];
 }

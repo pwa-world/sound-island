@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 import { exportArgs } from "../src/edit.js";
 import { inspectAudio, extractionArgs, validateFile } from "../src/import.js";
 const require = createRequire(import.meta.url);
-test("real bundled WASM extracts a video and exports trimmed WAV and MP3", async () => {
+test("real bundled WASM extracts a video and exports trimmed M4A, WAV and MP3", async () => {
   globalThis.self = { location: { href: "http://localhost/ffmpeg-core.js" } };
   const create = require("@ffmpeg/core");
   const ff = await create({
@@ -73,7 +73,7 @@ test("real bundled WASM extracts a video and exports trimmed WAV and MP3", async
   assert.ok(reads > 0, "probe and extraction must read file ranges");
   ff.FS.unmount("/input");
   ff.FS.rmdir("/input");
-  for (const format of ["wav", "mp3"]) {
+  for (const format of ["m4a", "wav", "mp3"]) {
     run(
       exportArgs({
         start: 1,
@@ -86,6 +86,26 @@ test("real bundled WASM extracts a video and exports trimmed WAV and MP3", async
     );
     const result = ff.FS.readFile(`export.${format}`);
     assert.ok(result.length > 1000);
+    if (format === "m4a") {
+      assert.equal(new TextDecoder().decode(result.slice(4, 8)), "ftyp");
+      await adapter.ffprobe([
+        "-v",
+        "error",
+        "-show_entries",
+        "stream=codec_name,duration",
+        "-of",
+        "json",
+        "-o",
+        "m4a.json",
+        "export.m4a",
+      ]);
+      const { streams } = JSON.parse(
+        ff.FS.readFile("m4a.json", { encoding: "utf8" }),
+      );
+      assert.equal(streams.length, 1);
+      assert.equal(streams[0].codec_name, "aac");
+      assert.ok(Math.abs(Number(streams[0].duration) - 1) < 0.03);
+    }
     if (format === "wav") {
       assert.equal(new TextDecoder().decode(result.slice(0, 4)), "RIFF");
       const view = new DataView(
