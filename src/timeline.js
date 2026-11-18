@@ -3,15 +3,22 @@ import { stamp, validateRange } from "./edit.js";
 export function mountTimeline($, say, stopPreview, editable) {
   let duration = 0,
     marks = [],
-    selected = 0,
+    selected = [true],
     active = -1,
     cursor = 0;
   const wave = $("timeline");
-  function range() {
-    return {
-      start: marks[selected - 1] ?? 0,
-      end: marks[selected] ?? duration,
-    };
+  function selectedRanges() {
+    return selected.flatMap((checked, index) =>
+      checked
+        ? [
+            {
+              number: index + 1,
+              start: marks[index - 1] ?? 0,
+              end: marks[index] ?? duration,
+            },
+          ]
+        : [],
+    );
   }
   function locate(time) {
     cursor = Math.min(duration, Math.max(0, time));
@@ -30,26 +37,36 @@ export function mountTimeline($, say, stopPreview, editable) {
         button.type = "button";
         button.onclick = () => {
           stopPreview();
-          selected = i;
-          locate(range().start);
+          selected[i] = !selected[i];
+          if (selected[i]) locate(marks[i - 1] ?? 0);
           render();
-          say(`已选中片段 ${i + 1}。`);
+          say(`已${selected[i] ? "选中" : "取消选择"}片段 ${i + 1}。`);
         };
         segments.append(button);
       }
       button.textContent = `片段 ${i + 1} · ${stamp(bounds[i])} – ${stamp(end)}`;
-      button.setAttribute("aria-pressed", String(i === selected));
+      button.setAttribute("aria-pressed", String(selected[i]));
     });
-    const { start, end } = range();
-    $("selection").style.left = (100 * start) / duration + "%";
-    $("selection").style.width = (100 * (end - start)) / duration + "%";
-    $("selected").textContent = stamp(end - start);
-    $("export").textContent = `导出片段 ${selected + 1} 并下载 ↓`;
-    $("preview").disabled = $("export").disabled = !validateRange(
-      start,
-      end,
-      duration,
+    const ranges = selectedRanges();
+    $("selection").replaceChildren(
+      ...ranges.map(({ start, end }) => {
+        const highlight = document.createElement("span");
+        highlight.className = "selection";
+        highlight.style.left = (100 * start) / duration + "%";
+        highlight.style.width = (100 * (end - start)) / duration + "%";
+        return highlight;
+      }),
     );
+    $("selected").textContent = stamp(
+      ranges.reduce((sum, r) => sum + r.end - r.start, 0),
+    );
+    $("export").textContent = ranges.length
+      ? `依次导出 ${ranges.length} 个片段 ↓`
+      : "请选择导出片段";
+    $("export").disabled =
+      !ranges.length ||
+      ranges.some((r) => !validateRange(r.start, r.end, duration));
+    $("preview").disabled = duration <= 0;
     $("markControls").hidden = !marks.length;
     const list = $("markList");
     while (list.childElementCount > marks.length)
@@ -143,13 +160,13 @@ export function mountTimeline($, say, stopPreview, editable) {
     }
     stopPreview();
     marks.splice(i, 0, cursor);
-    selected = i + 1;
+    selected.splice(i, 1, false, true);
     selectMark(i);
-    say(`已添加关键帧，当前选中片段 ${selected + 1}。`);
+    say(`已添加关键帧，已选中片段 ${i + 2}。`);
   };
   function removeMark(index) {
     stopPreview();
-    if (selected > index) selected--;
+    selected.splice(index, 2, selected[index] || selected[index + 1]);
     marks.splice(index, 1);
     active = Math.min(index, marks.length - 1);
     render();
@@ -201,17 +218,16 @@ export function mountTimeline($, say, stopPreview, editable) {
       selectMark(Number(marker.dataset.index));
   };
   return {
-    range,
+    selectedRanges,
     previewRange: () => ({
       start: cursor,
       end: marks.find((time) => time > cursor) ?? duration,
     }),
-    segmentNumber: () => selected + 1,
     locate,
     reset(length) {
       duration = length;
       marks = [];
-      selected = 0;
+      selected = [true];
       active = -1;
       $("cursor").max = duration;
       locate(0);

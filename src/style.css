@@ -523,3 +523,29 @@ footer {
   color: white;
   border-color: #183d36;
 }
+.transport {
+  display: grid;
+  grid-template-columns: minmax(58px, 1fr) auto auto;
+  align-items: end;
+  gap: clamp(4px, 1.5vw, 12px);
+}
+.transport label {
+  min-width: 0;
+}
+.transport input[type="number"] {
+  margin: 4px 0 0;
+  min-width: 0;
+  height: 46px;
+  font-size: 16px;
+}
+.transport button {
+  min-height: 46px;
+  padding: 8px clamp(6px, 2vw, 18px);
+  white-space: nowrap;
+}
+#exportedFiles a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: #183d36;
+}
