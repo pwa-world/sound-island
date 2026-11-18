@@ -11,7 +11,7 @@ import {
 } from "./import.js";
 const $ = (id) => document.getElementById(id);
 $("app").innerHTML =
-  `<header><div class="brand"><img src="./icon.svg" alt="">Sound Island</div><div class="header-actions"><span id="offline" class="badge" role="status">正在准备离线资源…</span><button id="install">安装应用 ↗</button></div></header><main><section class="hero"><div><div class="eyebrow">YOUR POCKET AUDIO STUDIO</div><h1>留住声音，<em>随处创作。</em></h1><p>从一段视频，到一段属于你的声音。<br>提取、剪切、导出，在你的小岛上轻松完成。</p></div><div class="island" aria-hidden="true">${[24, 48, 76, 108, 85, 58, 30].map((h) => `<i style="--h:${h}px"></i>`).join("")}</div></section><div id="installHelp" class="install-help" hidden></div><div class="layout"><section class="card"><div class="section-title"><h2><span class="step">01</span>导入与剪切</h2><span class="small">文件仅在本机处理</span></div><div id="drop" class="drop"><div class="file-info"><div class="file-name" id="filename">选择一个视频或音频</div><span class="small">本机处理 · 支持拖入</span></div><button id="choose" class="primary">＋ 选择文件</button><input id="file" type="file" accept="video/*,audio/*,.mkv,.mov,.m4a" aria-describedby="fileHelp" hidden></div><p id="fileHelp" class="small">无文件大小、时长上限。选择后先检查格式与音轨；实际处理能力取决于设备内存。</p><div id="statusBox" class="status-box"><div><div id="status" role="status" aria-live="polite">准备好后，选择一个视频开始吧。</div><progress id="progress" hidden max="1"></progress><span id="elapsed" class="small"></span></div><button id="cancel" hidden>取消</button></div><fieldset id="editor" disabled><div class="wave-wrap" id="timeline"><canvas id="wave" aria-label="音频波形"></canvas><div id="selection" class="selection"></div><div id="markers"></div><div id="playhead"></div></div><div class="time-row"><span>00:00.0</span><span id="duration">等待导入</span></div><label>定位时间（秒）<input id="cursor" type="number" min="0" step="0.01" value="0"></label><div class="toolbar"><button id="addMark">＋ 在此打关键帧</button></div><p class="small">点波形定位，或在试听时打关键帧。拖动关键帧可调节切点。</p><section id="markControls" hidden aria-label="关键帧"><h3>关键帧</h3><div id="markList"></div></section><section aria-label="选择片段"><h3>选择片段</h3><div id="segments" role="group" aria-label="可导出的片段"></div></section><div class="toolbar"><button id="preview">▶ 试听选区</button><button id="reset">↺ 重置编辑</button></div><p class="small">试听原始选区；音量、淡入淡出与倒放效果在导出结果中试听。</p></fieldset></section><aside><section class="card settings"><div class="section-title"><h2><span class="step">02</span>声音与导出</h2></div><fieldset id="settings" disabled><label>音量 <output id="gainLabel">100%</output><input id="gain" type="range" min="0" max="2" step="0.05" value="1"></label><label>淡入 / 淡出<select id="fade"><option value="0">无</option><option value="0.5">0.5 秒</option><option value="1">1 秒</option><option value="2">2 秒</option></select></label><label><input id="reverse" type="checkbox"> 倒放声音</label><div class="divider"></div><label>导出格式<select id="format"><option value="mp3">MP3 · 192 kbps · 更小体积</option><option value="wav">WAV · PCM · 无损编辑</option></select></label><div class="row small"><span>选区时长</span><strong id="selected">—</strong></div><button id="export" class="primary">导出并下载 ↓</button></fieldset><div id="result" hidden><strong>你的声音，准备好了。</strong><audio id="outputAudio" controls></audio><button id="share">分享 / 存储到文件</button></div></section><div class="note"><strong>◉ 你的小岛，不需要网络</strong><p>首次联网完成资源准备后，即可离线导入、剪切和导出。文件不会离开设备。浏览器清理缓存后需重新联网准备。</p><button id="retry" hidden>重新准备离线资源</button></div></aside></div><footer><span>SOUND ISLAND / 声音小岛</span><span>本地处理 · 无需登录 · 为随身创作而生</span></footer></main>`;
+  `<header><div class="brand"><img src="./icon.svg" alt="">Sound Island</div><div class="header-actions"><span id="offline" class="badge" role="status">正在准备离线资源…</span><button id="install">安装应用 ↗</button></div></header><main><section class="hero"><div><div class="eyebrow">YOUR POCKET AUDIO STUDIO</div><h1>留住声音，<em>随处创作。</em></h1><p>从一段视频，到一段属于你的声音。<br>提取、剪切、导出，在你的小岛上轻松完成。</p></div><div class="island" aria-hidden="true">${[24, 48, 76, 108, 85, 58, 30].map((h) => `<i style="--h:${h}px"></i>`).join("")}</div></section><div id="installHelp" class="install-help" hidden></div><div class="layout"><section class="card"><div class="section-title"><h2><span class="step">01</span>导入与剪切</h2><span class="small">文件仅在本机处理</span></div><div id="drop" class="drop"><div class="file-info"><div class="file-name" id="filename">选择一个视频或音频</div><span class="small">本机处理 · 支持拖入</span></div><button id="choose" class="primary">＋ 选择文件</button><input id="file" type="file" accept="video/*,audio/*,.mkv,.mov,.m4a" aria-describedby="fileHelp" hidden></div><p id="fileHelp" class="small">无文件大小、时长上限。选择后先检查格式与音轨；实际处理能力取决于设备内存。</p><div id="statusBox" class="status-box"><div><div id="status" role="status" aria-live="polite">准备好后，选择一个视频开始吧。</div><progress id="progress" hidden max="1"></progress><span id="elapsed" class="small"></span></div><button id="cancel" hidden>取消</button></div><fieldset id="editor" disabled><div class="wave-wrap" id="timeline"><canvas id="wave" aria-label="音频波形"></canvas><div id="selection" class="selection"></div><div id="markers"></div><div id="playhead"></div></div><div class="time-row"><span>00:00.0</span><span id="duration">等待导入</span></div><label>定位时间（秒）<input id="cursor" type="number" min="0" step="0.01" value="0"></label><div class="toolbar"><button id="addMark">＋ 在此打关键帧</button></div><p class="small">点波形定位，或在试听时打关键帧。拖动关键帧可调节切点。</p><section id="markControls" hidden aria-label="关键帧"><h3>关键帧</h3><div id="markList"></div></section><section aria-label="选择片段"><h3>选择片段</h3><div id="segments" role="group" aria-label="可导出的片段"></div></section><div class="toolbar"><button id="preview">▶ 从此处试听</button><button id="reset">↺ 重置编辑</button></div><p class="small">从光标试听到下一切点。导出效果可在结果中试听。</p></fieldset></section><aside><section class="card settings"><div class="section-title"><h2><span class="step">02</span>声音与导出</h2></div><fieldset id="settings" disabled><label>音量 <output id="gainLabel">100%</output><input id="gain" type="range" min="0" max="2" step="0.05" value="1"></label><label>淡入 / 淡出<select id="fade"><option value="0">无</option><option value="0.5">0.5 秒</option><option value="1">1 秒</option><option value="2">2 秒</option></select></label><label><input id="reverse" type="checkbox"> 倒放声音</label><div class="divider"></div><label>导出格式<select id="format"><option value="mp3">MP3 · 192 kbps · 更小体积</option><option value="wav">WAV · PCM · 无损编辑</option></select></label><div class="row small"><span>选区时长</span><strong id="selected">—</strong></div><button id="export" class="primary">导出并下载 ↓</button></fieldset><div id="result" hidden><strong>你的声音，准备好了。</strong><audio id="outputAudio" controls></audio><button id="share">分享 / 存储到文件</button></div></section><div class="note"><strong>◉ 你的小岛，不需要网络</strong><p>首次联网完成资源准备后，即可离线导入、剪切和导出。文件不会离开设备。浏览器清理缓存后需重新联网准备。</p><button id="retry" hidden>重新准备离线资源</button></div></aside></div><footer><span>SOUND ISLAND / 声音小岛</span><span>本地处理 · 无需登录 · 为随身创作而生</span></footer></main>`;
 let engine,
   source,
   buffer,
@@ -38,7 +38,7 @@ function stopPreview() {
     previewNode.stop();
     previewNode = null;
   }
-  $("preview").textContent = "▶ 试听选区";
+  $("preview").textContent = "▶ 从此处试听";
 }
 function controls() {
   $("choose").disabled = busy;
@@ -198,6 +198,7 @@ const timeline = mountTimeline(
   () => Boolean(buffer) && !busy,
 );
 function reset(notify = true) {
+  stopPreview();
   timeline.reset(duration);
   $("gain").value = 1;
   $("gainLabel").textContent = "100%";
@@ -249,6 +250,12 @@ $("preview").onclick = async () => {
   }
   try {
     await context.resume();
+    if (busy || previewNode) return;
+    const { start, end } = timeline.previewRange();
+    if (start >= end) {
+      say("已到音轨末尾，请移动光标或点选片段重新试听。");
+      return;
+    }
     previewNode = context.createBufferSource();
     previewNode.buffer = buffer;
     previewNode.connect(context.destination);
@@ -256,9 +263,9 @@ $("preview").onclick = async () => {
       cancelAnimationFrame(playbackRequest);
       timeline.locate(end);
       previewNode = null;
-      $("preview").textContent = "▶ 试听选区";
+      say("已到片段末尾。");
+      $("preview").textContent = "▶ 从此处试听";
     };
-    const { start, end } = timeline.range();
     const beganAt = context.currentTime;
     const updateCursor = () => {
       timeline.locate(Math.min(end, start + context.currentTime - beganAt));
@@ -267,7 +274,7 @@ $("preview").onclick = async () => {
     previewNode.start(0, start, end - start);
     updateCursor();
     $("preview").textContent = "■ 停止试听";
-    say("正在试听原始选区…");
+    say(`从 ${stamp(start)} 试听至 ${stamp(end)}。`);
   } catch {
     say("无法播放，请重试或检查设备音频权限。", true);
   }

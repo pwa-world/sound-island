@@ -202,6 +202,10 @@ export function mountTimeline($, say, stopPreview, editable) {
   };
   return {
     range,
+    previewRange: () => ({
+      start: cursor,
+      end: marks.find((time) => time > cursor) ?? duration,
+    }),
     segmentNumber: () => selected + 1,
     locate,
     reset(length) {
