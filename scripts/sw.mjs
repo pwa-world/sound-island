@@ -9,7 +9,9 @@ async function walk(dir) {
   }
   return out;
 }
-const files = (await walk("dist")).filter((f) => !f.endsWith("/sw.js"));
+const files = (await walk("dist")).filter(
+  (f) => !f.endsWith("/sw.js") && !f.startsWith("dist/engine/"),
+);
 const hash = createHash("sha256");
 for (const f of files) hash.update(await readFile(f));
 await writeFile(
@@ -24,5 +26,5 @@ self.addEventListener('fetch',event=>{if(event.request.method!=='GET'||new URL(e
 console.log(
   "Precached",
   files.length,
-  "files (including offline audio engine)",
+  "application files (engine cached separately)",
 );

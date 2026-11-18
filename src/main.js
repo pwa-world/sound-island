@@ -1,6 +1,8 @@
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { exportArgs, validateRange, stamp } from "./edit.js";
 import "./style.css";
+import { engineAssets } from "./engine-assets.js";
+import { mountTimeline } from "./timeline.js";
 import {
   InvalidFileError,
   validateFile,
@@ -9,7 +11,7 @@ import {
 } from "./import.js";
 const $ = (id) => document.getElementById(id);
 $("app").innerHTML =
-  `<header><div class="brand"><img src="./icon.svg" alt="">Sound Island</div><div class="header-actions"><span id="offline" class="badge" role="status">正在准备离线资源…</span><button id="install">安装应用 ↗</button></div></header><main><section class="hero"><div><div class="eyebrow">YOUR POCKET AUDIO STUDIO</div><h1>留住声音，<em>随处创作。</em></h1><p>从一段视频，到一段属于你的声音。<br>提取、剪切、导出，在你的小岛上轻松完成。</p></div><div class="island" aria-hidden="true">${[24, 48, 76, 108, 85, 58, 30].map((h) => `<i style="--h:${h}px"></i>`).join("")}</div></section><div id="installHelp" class="install-help" hidden></div><div class="layout"><section class="card"><div class="section-title"><h2><span class="step">01</span>导入与剪切</h2><span class="small">文件仅在本机处理</span></div><div id="drop" class="drop"><div class="file-info"><div class="file-name" id="filename">选择一个视频或音频</div><span class="small">本机处理 · 支持拖入</span></div><button id="choose" class="primary">＋ 选择文件</button><input id="file" type="file" accept="video/*,audio/*,.mkv,.mov,.m4a" aria-describedby="fileHelp" hidden></div><p id="fileHelp" class="small">无文件大小、时长上限。选择后先检查格式与音轨；实际处理能力取决于设备内存。</p><div id="statusBox" class="status-box"><div><div id="status" role="status" aria-live="polite">准备好后，选择一个视频开始吧。</div><progress id="progress" hidden max="1"></progress><span id="elapsed" class="small"></span></div><button id="cancel" hidden>取消</button></div><fieldset id="editor" disabled><div class="wave-wrap"><canvas id="wave" aria-label="音频波形"></canvas><div id="selection" class="selection"></div></div><div class="time-row"><span>00:00.0</span><span id="duration">等待导入</span></div><div class="fields"><label>起点（秒）<input id="start" type="number" min="0" step="0.1" value="0"><input id="startRange" aria-label="拖动剪切起点" type="range" min="0" step="0.1" value="0"></label><label>终点（秒）<input id="end" type="number" min="0" step="0.1" value="0"><input id="endRange" aria-label="拖动剪切终点" type="range" min="0" step="0.1" value="0"></label></div><div class="toolbar"><button id="preview">▶ 试听选区</button><button id="reset">↺ 重置编辑</button></div><p class="small">试听原始选区；音量、淡入淡出与倒放效果在导出结果中试听。</p></fieldset></section><aside><section class="card settings"><div class="section-title"><h2><span class="step">02</span>声音与导出</h2></div><fieldset id="settings" disabled><label>音量 <output id="gainLabel">100%</output><input id="gain" type="range" min="0" max="2" step="0.05" value="1"></label><label>淡入 / 淡出<select id="fade"><option value="0">无</option><option value="0.5">0.5 秒</option><option value="1">1 秒</option><option value="2">2 秒</option></select></label><label><input id="reverse" type="checkbox"> 倒放声音</label><div class="divider"></div><label>导出格式<select id="format"><option value="mp3">MP3 · 192 kbps · 更小体积</option><option value="wav">WAV · PCM · 无损编辑</option></select></label><div class="row small"><span>选区时长</span><strong id="selected">—</strong></div><button id="export" class="primary">导出并下载 ↓</button></fieldset><div id="result" hidden><strong>你的声音，准备好了。</strong><audio id="outputAudio" controls></audio><button id="share">分享 / 存储到文件</button></div></section><div class="note"><strong>◉ 你的小岛，不需要网络</strong><p>首次联网完成资源准备后，即可离线导入、剪切和导出。文件不会离开设备。浏览器清理缓存后需重新联网准备。</p><button id="retry" hidden>重新准备离线资源</button></div></aside></div><footer><span>SOUND ISLAND / 声音小岛</span><span>本地处理 · 无需登录 · 为随身创作而生</span></footer></main>`;
+  `<header><div class="brand"><img src="./icon.svg" alt="">Sound Island</div><div class="header-actions"><span id="offline" class="badge" role="status">正在准备离线资源…</span><button id="install">安装应用 ↗</button></div></header><main><section class="hero"><div><div class="eyebrow">YOUR POCKET AUDIO STUDIO</div><h1>留住声音，<em>随处创作。</em></h1><p>从一段视频，到一段属于你的声音。<br>提取、剪切、导出，在你的小岛上轻松完成。</p></div><div class="island" aria-hidden="true">${[24, 48, 76, 108, 85, 58, 30].map((h) => `<i style="--h:${h}px"></i>`).join("")}</div></section><div id="installHelp" class="install-help" hidden></div><div class="layout"><section class="card"><div class="section-title"><h2><span class="step">01</span>导入与剪切</h2><span class="small">文件仅在本机处理</span></div><div id="drop" class="drop"><div class="file-info"><div class="file-name" id="filename">选择一个视频或音频</div><span class="small">本机处理 · 支持拖入</span></div><button id="choose" class="primary">＋ 选择文件</button><input id="file" type="file" accept="video/*,audio/*,.mkv,.mov,.m4a" aria-describedby="fileHelp" hidden></div><p id="fileHelp" class="small">无文件大小、时长上限。选择后先检查格式与音轨；实际处理能力取决于设备内存。</p><div id="statusBox" class="status-box"><div><div id="status" role="status" aria-live="polite">准备好后，选择一个视频开始吧。</div><progress id="progress" hidden max="1"></progress><span id="elapsed" class="small"></span></div><button id="cancel" hidden>取消</button></div><fieldset id="editor" disabled><div class="wave-wrap" id="timeline"><canvas id="wave" aria-label="音频波形"></canvas><div id="selection" class="selection"></div><div id="markers"></div><div id="playhead"></div></div><div class="time-row"><span>00:00.0</span><span id="duration">等待导入</span></div><label>定位时间（秒）<input id="cursor" type="number" min="0" step="0.01" value="0"></label><div class="toolbar"><button id="addMark">＋ 在此打关键帧</button></div><p class="small">点波形定位，或在试听时打关键帧。拖动关键帧可调节切点。</p><div id="markControls" hidden><label>编辑关键帧<select id="markList"></select></label><div class="fields"><label>关键帧位置（秒）<input id="markTime" type="number" step="0.01"></label><button id="removeMark">删除关键帧</button></div></div><label>选择片段<select id="segment"></select></label><div class="toolbar"><button id="preview">▶ 试听选区</button><button id="reset">↺ 重置编辑</button></div><p class="small">试听原始选区；音量、淡入淡出与倒放效果在导出结果中试听。</p></fieldset></section><aside><section class="card settings"><div class="section-title"><h2><span class="step">02</span>声音与导出</h2></div><fieldset id="settings" disabled><label>音量 <output id="gainLabel">100%</output><input id="gain" type="range" min="0" max="2" step="0.05" value="1"></label><label>淡入 / 淡出<select id="fade"><option value="0">无</option><option value="0.5">0.5 秒</option><option value="1">1 秒</option><option value="2">2 秒</option></select></label><label><input id="reverse" type="checkbox"> 倒放声音</label><div class="divider"></div><label>导出格式<select id="format"><option value="mp3">MP3 · 192 kbps · 更小体积</option><option value="wav">WAV · PCM · 无损编辑</option></select></label><div class="row small"><span>选区时长</span><strong id="selected">—</strong></div><button id="export" class="primary">导出并下载 ↓</button></fieldset><div id="result" hidden><strong>你的声音，准备好了。</strong><audio id="outputAudio" controls></audio><button id="share">分享 / 存储到文件</button></div></section><div class="note"><strong>◉ 你的小岛，不需要网络</strong><p>首次联网完成资源准备后，即可离线导入、剪切和导出。文件不会离开设备。浏览器清理缓存后需重新联网准备。</p><button id="retry" hidden>重新准备离线资源</button></div></aside></div><footer><span>SOUND ISLAND / 声音小岛</span><span>本地处理 · 无需登录 · 为随身创作而生</span></footer></main>`;
 let engine,
   source,
   buffer,
@@ -19,6 +21,7 @@ let engine,
   jobStarted,
   ticker,
   previewNode,
+  playbackRequest,
   context,
   resultURL,
   resultBlob,
@@ -29,7 +32,9 @@ function say(message, error = false) {
   $("statusBox").classList.toggle("error", error);
 }
 function stopPreview() {
+  cancelAnimationFrame(playbackRequest);
   if (previewNode) {
+    previewNode.onended = null;
     previewNode.stop();
     previewNode = null;
   }
@@ -84,10 +89,17 @@ async function getEngine(id) {
     if (engine === ff && busy && Number.isFinite(progress))
       $("progress").value = Math.max(0, Math.min(0.99, progress));
   });
-  await ff.load({
-    coreURL: new URL("engine/ffmpeg-core.js", document.baseURI).href,
-    wasmURL: new URL("engine/ffmpeg-core.wasm", document.baseURI).href,
-  });
+  const assets = await engineAssets();
+  if (id !== generation) throw Error("cancelled");
+  const [coreURL, wasmURL] = assets.map((asset) =>
+    URL.createObjectURL(asset.blob),
+  );
+  try {
+    await ff.load({ coreURL, wasmURL });
+  } finally {
+    URL.revokeObjectURL(coreURL);
+    URL.revokeObjectURL(wasmURL);
+  }
   if (id !== generation) throw Error("cancelled");
   return ff;
 }
@@ -143,12 +155,10 @@ async function importFile(file) {
     $("filename").textContent = file.name;
     $("filename").title = file.name;
     $("duration").textContent = stamp(duration);
-    for (const key of ["start", "end", "startRange", "endRange"])
-      $(key).max = duration;
     reset(false);
     clearResult();
     draw();
-    say("音轨已提取。调整起止时间后，可试听选区或导出。");
+    say("音轨已提取。点波形定位并添加关键帧，然后选择片段试听或导出。");
   } catch (e) {
     if (id === generation) {
       engine?.terminate();
@@ -181,46 +191,18 @@ $("drop").ondrop = (e) => {
   $("drop").classList.remove("drag");
   importFile(e.dataTransfer.files[0]);
 };
-function rangeValid() {
-  return validateRange(+$("start").value, +$("end").value, duration);
-}
-function selection(notify = true) {
-  stopPreview();
-  const start = +$("start").value,
-    end = +$("end").value;
-  $("startRange").value = start;
-  $("endRange").value = end;
-  const valid = rangeValid();
-  $("export").disabled = !valid;
-  $("preview").disabled = !valid;
-  $("selected").textContent = valid ? stamp(end - start) : "无效区间";
-  $("selection").style.left =
-    `${Math.max(0, Math.min(100, (start / duration) * 100))}%`;
-  $("selection").style.width =
-    `${Math.max(0, Math.min(100, ((end - start) / duration) * 100))}%`;
-  if (notify)
-    say(
-      valid
-        ? `选区已更新：${stamp(start)} → ${stamp(end)}`
-        : "终点需大于起点至少 0.05 秒，且不能超出音轨。",
-      !valid,
-    );
-}
-for (const key of ["start", "end"]) {
-  $(key).oninput = () => selection();
-  $(key + "Range").oninput = (e) => {
-    $(key).value = e.target.value;
-    selection();
-  };
-}
+const timeline = mountTimeline(
+  $,
+  say,
+  stopPreview,
+  () => Boolean(buffer) && !busy,
+);
 function reset(notify = true) {
-  $("start").value = 0;
-  $("end").value = duration;
+  timeline.reset(duration);
   $("gain").value = 1;
   $("gainLabel").textContent = "100%";
   $("fade").value = 0;
   $("reverse").checked = false;
-  selection(false);
   if (notify) say("编辑参数已重置，保留完整音轨。");
 }
 $("reset").onclick = () => reset();
@@ -271,14 +253,19 @@ $("preview").onclick = async () => {
     previewNode.buffer = buffer;
     previewNode.connect(context.destination);
     previewNode.onended = () => {
+      cancelAnimationFrame(playbackRequest);
+      timeline.locate(end);
       previewNode = null;
       $("preview").textContent = "▶ 试听选区";
     };
-    previewNode.start(
-      0,
-      +$("start").value,
-      +$("end").value - +$("start").value,
-    );
+    const { start, end } = timeline.range();
+    const beganAt = context.currentTime;
+    const updateCursor = () => {
+      timeline.locate(Math.min(end, start + context.currentTime - beganAt));
+      playbackRequest = requestAnimationFrame(updateCursor);
+    };
+    previewNode.start(0, start, end - start);
+    updateCursor();
     $("preview").textContent = "■ 停止试听";
     say("正在试听原始选区…");
   } catch {
@@ -286,14 +273,15 @@ $("preview").onclick = async () => {
   }
 };
 $("export").onclick = async () => {
-  if (!rangeValid() || busy) return;
+  const { start, end } = timeline.range();
+  if (!validateRange(start, end, duration) || busy) return;
   const id = begin("正在准备导出…");
   try {
     const ff = await getEngine(id);
     await ff.writeFile("source.wav", source.slice());
     const options = {
-      start: +$("start").value,
-      end: +$("end").value,
+      start,
+      end,
       gain: +$("gain").value,
       fade: +$("fade").value,
       reverse: $("reverse").checked,
@@ -310,7 +298,7 @@ $("export").onclick = async () => {
     resultBlob = new Blob([data], {
       type: options.format === "mp3" ? "audio/mpeg" : "audio/wav",
     });
-    resultName = `sound-island-${Date.now()}.${options.format}`;
+    resultName = `sound-island-segment-${Number($("segment").value) + 1}-${Date.now()}.${options.format}`;
     resultURL = URL.createObjectURL(resultBlob);
     $("outputAudio").src = resultURL;
     const download = document.createElement("a");
@@ -406,13 +394,14 @@ async function setupOffline() {
         active.postMessage("CHECK_READY", [channel.port2]);
       });
     })();
-    const cached = await Promise.race([
-      ready,
+    const [cached, assets] = await Promise.race([
+      Promise.all([ready, engineAssets()]),
       new Promise((_, reject) => {
-        timer = setTimeout(() => reject(Error("timeout")), 120000);
+        timer = setTimeout(() => reject(Error("timeout")), 210000);
       }),
     ]);
-    if (!cached) throw Error("incomplete");
+    if (!cached || !assets.every((asset) => asset.cached))
+      throw Error("incomplete");
     $("offline").textContent = "● 离线资源已就绪";
     navigator.storage?.persist?.().catch(() => {});
   } catch {

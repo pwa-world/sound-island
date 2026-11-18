@@ -22,10 +22,10 @@ export function exportArgs({ start, end, gain, fade, reverse, format }) {
   return [
     "-ss",
     String(start),
-    "-i",
-    "source.wav",
     "-t",
     String(end - start),
+    "-i",
+    "source.wav",
     "-vn",
     "-af",
     filters({ gain, fade, reverse }, end - start),
