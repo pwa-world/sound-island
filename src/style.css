@@ -476,12 +476,50 @@ footer {
     linear-gradient(to bottom, #3d674c 22px, transparent 22px),
     linear-gradient(to right, transparent 46%, #3d674c 46% 54%, transparent 54%);
 }
-#markControls {
-  margin: 12px 0;
-  padding: 12px;
-  background: #f5f7f0;
+#editor h3 {
+  font-size: 15px;
+  margin: 18px 0 8px;
+}
+#markList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+  gap: 8px;
+}
+.mark-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 8px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid #dce2d3;
   border-radius: 12px;
 }
-#markControls .fields {
-  align-items: center;
+.mark-row.active {
+  border-color: #71875f;
+  background: #f5f7f0;
+}
+.mark-row label {
+  grid-column: 1/-1;
+}
+.mark-row input[type="number"] {
+  margin: 0;
+  min-width: 0;
+}
+.mark-row button {
+  padding: 8px 12px;
+}
+#segments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+#segments button {
+  font-size: 13px;
+  padding: 8px 10px;
+  font-variant-numeric: tabular-nums;
+}
+#segments button[aria-pressed="true"] {
+  background: #183d36;
+  color: white;
+  border-color: #183d36;
 }

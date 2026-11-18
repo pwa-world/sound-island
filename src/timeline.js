@@ -20,18 +20,26 @@ export function mountTimeline($, say, stopPreview, editable) {
   }
   function render() {
     const bounds = [0, ...marks, duration];
-    $("segment").replaceChildren(
-      ...bounds
-        .slice(1)
-        .map(
-          (end, i) =>
-            new Option(
-              `片段 ${i + 1} · ${stamp(bounds[i])} – ${stamp(end)}`,
-              i,
-            ),
-        ),
-    );
-    $("segment").value = selected;
+    const segments = $("segments");
+    while (segments.childElementCount > bounds.length - 1)
+      segments.lastElementChild.remove();
+    bounds.slice(1).forEach((end, i) => {
+      let button = segments.children[i];
+      if (!button) {
+        button = document.createElement("button");
+        button.type = "button";
+        button.onclick = () => {
+          stopPreview();
+          selected = i;
+          locate(range().start);
+          render();
+          say(`已选中片段 ${i + 1}。`);
+        };
+        segments.append(button);
+      }
+      button.textContent = `片段 ${i + 1} · ${stamp(bounds[i])} – ${stamp(end)}`;
+      button.setAttribute("aria-pressed", String(i === selected));
+    });
     const { start, end } = range();
     $("selection").style.left = (100 * start) / duration + "%";
     $("selection").style.width = (100 * (end - start)) / duration + "%";
@@ -43,11 +51,38 @@ export function mountTimeline($, say, stopPreview, editable) {
       duration,
     );
     $("markControls").hidden = !marks.length;
-    $("markList").replaceChildren(
-      ...marks.map((t, i) => new Option(`关键帧 ${i + 1} · ${stamp(t)}`, i)),
-    );
-    $("markList").value = active;
-    $("markTime").value = marks[active] ?? "";
+    const list = $("markList");
+    while (list.childElementCount > marks.length)
+      list.lastElementChild.remove();
+    marks.forEach((time, i) => {
+      let row = list.children[i];
+      if (!row) {
+        row = document.createElement("div");
+        row.className = "mark-row";
+        const label = document.createElement("label");
+        label.htmlFor = `mark-time-${i}`;
+        label.textContent = `关键帧 ${i + 1}（秒）`;
+        const input = document.createElement("input");
+        input.id = label.htmlFor;
+        input.type = "number";
+        input.step = "0.01";
+        input.inputMode = "decimal";
+        input.onfocus = () => selectMark(i);
+        input.onchange = () => {
+          active = i;
+          move(input.valueAsNumber);
+        };
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.textContent = "删除";
+        remove.setAttribute("aria-label", `删除关键帧 ${i + 1}`);
+        remove.onclick = () => removeMark(i);
+        row.append(label, input, remove);
+        list.append(row);
+      }
+      row.classList.toggle("active", i === active);
+      row.querySelector("input").value = time;
+    });
     $("markers").replaceChildren(
       ...marks.map((time, i) => {
         const marker = document.createElement("button");
@@ -78,7 +113,8 @@ export function mountTimeline($, say, stopPreview, editable) {
     const previous = marks[active - 1] ?? 0,
       next = marks[active + 1] ?? duration;
     if (!allowed(time, previous, next)) {
-      $("markTime").value = marks[active];
+      $("markList").children[active].querySelector("input").value =
+        marks[active];
       say("关键帧须位于相邻边界之间，各片段至少保留 0.05 秒。", true);
       return;
     }
@@ -111,23 +147,14 @@ export function mountTimeline($, say, stopPreview, editable) {
     selectMark(i);
     say(`已添加关键帧，当前选中片段 ${selected + 1}。`);
   };
-  $("removeMark").onclick = () => {
+  function removeMark(index) {
     stopPreview();
-    if (selected > active) selected--;
-    marks.splice(active, 1);
-    active = Math.min(active, marks.length - 1);
+    if (selected > index) selected--;
+    marks.splice(index, 1);
+    active = Math.min(index, marks.length - 1);
     render();
-    say("已删除关键帧，并合并相邻片段。");
-  };
-  $("markList").onchange = () => selectMark(Number($("markList").value));
-  $("markTime").onchange = () => move($("markTime").valueAsNumber);
-  $("segment").onchange = () => {
-    stopPreview();
-    selected = Number($("segment").value);
-    locate(range().start);
-    render();
-    say(`已选中片段 ${selected + 1}。`);
-  };
+    say(`已删除关键帧 ${index + 1}，并合并相邻片段。`);
+  }
   function waveTime(event) {
     const rect = wave.getBoundingClientRect();
     return Math.min(
@@ -175,6 +202,7 @@ export function mountTimeline($, say, stopPreview, editable) {
   };
   return {
     range,
+    segmentNumber: () => selected + 1,
     locate,
     reset(length) {
       duration = length;
